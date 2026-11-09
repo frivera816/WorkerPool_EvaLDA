@@ -59,6 +59,33 @@ Con `DRY_RUN=false`, `CLIENT_LIMIT` debe ser exactamente `5`.
 - `DRY_RUN=false`: habilita el guardado del lote piloto. Exige
   `CLIENT_LIMIT=5` y que se seleccionen exactamente cinco clientes.
 
+### Timeout y cantidad de clientes
+
+`DB_QUERY_TIMEOUT` limita la conexión inicial, la consulta de selección y la
+carga de **cada lote** (hasta diez consultas agrupadas). No limita la evaluación
+en memoria.
+
+Si un lote no alcanza a cargarse dentro de ese tiempo:
+
+- sus clientes se cuentan como errores y se omiten sus evaluaciones;
+- el proceso continúa con los lotes siguientes;
+- con `DRY_RUN=false`, cualquier error impide persistir el lote piloto completo.
+
+Por eso, **si aumenta `CLIENT_LIMIT` o `BATCH_SIZE`, aumente también
+`DB_QUERY_TIMEOUT`**. Un timeout pensado para cientos de clientes puede ser
+insuficiente para miles, especialmente si la base está lenta o hay muchas tablas
+de contratos y abonos. Como referencia inicial:
+
+| Clientes / tamaño de lote | `DB_QUERY_TIMEOUT` sugerido |
+| --- | --- |
+| Hasta 500 con `BATCH_SIZE=100` | `30s` |
+| Hasta 2,000 con `BATCH_SIZE=100` | `60s` |
+| Miles de clientes o lotes mayores | `120s` o más |
+
+Ajuste el valor según el tiempo real que observe en las métricas de carga. Si
+ejecuta con `CLIENT_LIMIT=0` (todos los clientes), use un timeout holgado o
+reduzca `BATCH_SIZE` para que cada lote sea más pequeño.
+
 ## Compilación
 
 Desde la raíz del proyecto:
