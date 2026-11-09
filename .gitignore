@@ -1,0 +1,6 @@
+# Credenciales locales: nunca versionar.
+.env
+
+# Artefactos de compilación.
+/bin/
+*.exe
